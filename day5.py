@@ -218,7 +218,7 @@ def main():
             if id_choice in IDENTITIES:
                 chat_loop(id_choice)
             elif id_choice == "0":
-                continue
+                 continue
             else:
                 print("⚠️ 无效选择，请重新操作。")
         else:
@@ -227,14 +227,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
 

@@ -203,13 +203,3 @@ for i, text in enumerate(test_texts, 1):
     print(f"原文: {text}")
     result = extract_course(text)
     print(f"提取: {result}\n")
-
-
-
-
-
-
-
-
-
-
