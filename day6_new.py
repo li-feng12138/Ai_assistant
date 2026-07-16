@@ -216,6 +216,78 @@ st.set_page_config(page_title="校园信息查询助手", layout="wide")
 # ========= 全局异常捕获 =========
 try:
 
+    # ---------- 电话黄页全屏状态 ----------
+    if "show_yellow_pages" not in st.session_state:
+        st.session_state.show_yellow_pages = False
+
+    # ========== 电话黄页全屏页面 ==========
+    if st.session_state.show_yellow_pages:
+        close_col, title_col, _ = st.columns([1, 4, 1])
+        with close_col:
+            if st.button("✖ 关闭", key="close_yellow_pages", use_container_width=True):
+                st.session_state.show_yellow_pages = False
+                st.rerun()
+        with title_col:
+            st.title("📞 校园电话黄页")
+        st.markdown("---")
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(
+                "#### 🏛️ 行政服务\n\n"
+                "| 部门 | 电话 |\n"
+                "| --- | --- |\n"
+                "| 校值班室 | 0371-63456789 |\n"
+                "| 招生办 | 0371-63456001 |\n"
+                "| 教务处 | 0371-63456002 |\n"
+                "| 学生处 | 0371-63456003 |\n"
+                "| 财务处 | 0371-63456004 |\n"
+            )
+        with col2:
+            st.markdown(
+                "#### 🏫 院系联系\n\n"
+                "| 部门 | 电话 |\n"
+                "| --- | --- |\n"
+                "| 信息工程学院办公室 | 0371-63456101 |\n"
+                "| 航空工程学院办公室 | 0371-63456102 |\n"
+                "| 工商管理学院办公室 | 0371-63456103 |\n"
+                "| 文法学院办公室 | 0371-63456104 |\n"
+            )
+        with col3:
+            st.markdown(
+                "#### 🔧 生活服务\n\n"
+                "| 部门 | 电话 |\n"
+                "| --- | --- |\n"
+                "| 后勤报修 | 0371-63456201 |\n"
+                "| 宿管中心 | 0371-63456202 |\n"
+                "| 食堂管理 | 0371-63456203 |\n"
+                "| 校园卡中心 | 0371-63456204 |\n"
+            )
+
+        st.markdown("---")
+
+        col4, col5 = st.columns(2)
+        with col4:
+            st.markdown(
+                "#### 🛡️ 安全应急\n\n"
+                "| 部门 | 电话 |\n"
+                "| --- | --- |\n"
+                "| 保卫处 | 0371-63456301 |\n"
+                "| 校医院 | 0371-63456302 |\n"
+            )
+        with col5:
+            st.markdown(
+                "#### 💚 心理关怀\n\n"
+                "| 部门 | 电话 |\n"
+                "| --- | --- |\n"
+                "| 心理咨询中心 | 0371-63456303 |\n"
+                "| 心理咨询热线 | 0371-63456304 |\n"
+            )
+
+        st.markdown("---")
+        st.caption("© 2025 小航校园AI助手 | 郑州航空工业管理学院")
+        st.stop()
+
     # ---------- 初始化会话状态（从文件加载） ----------
     if "conversations" not in st.session_state:
         loaded = load_conversations()
@@ -345,6 +417,12 @@ try:
                         st.session_state.pop(f"renaming_{conv['id']}", None)
                         st.rerun()
 
+        # ---------- 电话黄页入口按钮 ----------
+        st.markdown("---")
+        if st.button("📞 校园电话黄页", use_container_width=True):
+            st.session_state.show_yellow_pages = True
+            st.rerun()
+
     # ========== 右侧主区域 ==========
     current_conv = get_current_conv()
 
@@ -352,11 +430,11 @@ try:
     st.title("🎓 小航 - 校园信息AI助手")
     st.caption("郑州航空工业管理学院 | 基于硅基流动大模型")
 
+    # ---------- 身份选择 ----------
     identity_options = ["请选择身份", "新生", "在校生", "教师"]
     saved_identity = current_conv.get("identity", "请选择身份")
     default_index = identity_options.index(saved_identity) if saved_identity in identity_options else 0
 
-    # 身份选择下拉框
     identity = st.selectbox(
         "请选择你的身份：",
         identity_options,
@@ -372,45 +450,76 @@ try:
             current_conv["identity"] = identity
             save_conversations()
 
-        # 推荐提问按钮（3种身份 × 4个 = 12个）
-        question_buttons = {
-            "新生": [
-                "新生报到需要带哪些材料？",
-                "学费和住宿费分别是多少？",
-                "宿舍是怎么分配的？",
-                "入学后如何防止被骗？",
-            ],
-            "在校生": [
-                "如何开具在读证明？",
-                "校园卡丢了怎么补办？",
-                "转专业需要什么条件？",
-                "图书馆的开放时间是什么？",
-            ],
-            "教师": [
-                "各院系办公室联系电话是多少？",
-                "教务处和财务处的联系方式？",
-                "遇到紧急情况如何处理？",
-                "心理咨询中心在哪里？如何预约？",
-            ],
+        # ========== ① 身份动态分类切换逻辑 ==========
+        identity_categories = {
+            "新生": ["🎒 新生入学", "🏫 校园生活", "🚌 校园交通"],
+            "在校生": ["🏫 校园生活", "🚌 校园交通"],
         }
 
-        st.markdown("##### 💡 推荐提问（点击直接发送）")
-        cols = st.columns(4)
-        for i, btn_text in enumerate(question_buttons[identity]):
-            if cols[i].button(btn_text, key=f"btn_{current_conv['id']}_{i}"):
-                current_conv["messages"].append({"role": "user", "content": btn_text})
-                md_files = list(DATA_DIR.glob("[0-9]*.md"))
-                if not md_files:
-                    answer = "⚠️ 未找到校园资料文件，请确认资料存在。"
-                else:
-                    campus_docs = load_all_docs()
-                    system_prompt = build_system_prompt(identity, campus_docs)
-                    with st.chat_message("assistant"):
-                        placeholder = st.empty()
-                        answer = chat_with_ai_stream(btn_text, system_prompt, placeholder)
-                current_conv["messages"].append({"role": "assistant", "content": answer})
-                save_conversations()
-                st.rerun()
+        def handle_question(question):
+            """保存问题到待处理状态，触发rerun"""
+            st.session_state[f"pending_q_{current_conv['id']}"] = question
+            st.rerun()
+
+        if identity in identity_categories:
+            categories = identity_categories[identity]
+            state_key = f"selected_category_{current_conv['id']}"
+            if state_key not in st.session_state:
+                st.session_state[state_key] = categories[0]
+
+            category_cols = st.columns(len(categories))
+            for i, cat in enumerate(categories):
+                is_active = st.session_state[state_key] == cat
+                if category_cols[i].button(
+                    cat,
+                    key=f"cat_{current_conv['id']}_{i}",
+                    type="primary" if is_active else "secondary",
+                ):
+                    st.session_state[state_key] = cat
+                    st.rerun()
+
+            category_questions = {
+                "🎒 新生入学": [
+                    "新生报到需要带哪些材料？",
+                    "学费和住宿费分别是多少？",
+                    "宿舍是怎么分配的？",
+                    "入学后如何防止被骗？",
+                ],
+                "🏫 校园生活": [
+                    "图书馆的开放时间是什么？",
+                    "如何开具在读证明？",
+                    "校园卡丢了怎么补办？",
+                    "食堂有哪些？饭菜价格如何？",
+                ],
+                "🚌 校园交通": [
+                    "312路公交车路线和站点有哪些？",
+                    "48路公交车经过学校哪些站？",
+                    "S177路微公交怎么坐？",
+                    "Y31路夜班车运营时间是怎样的？",
+                ],
+            }
+
+            st.markdown("---")
+            current_category = st.session_state[state_key]
+            questions = category_questions.get(current_category, [])
+            cols = st.columns(len(questions))
+            for i, q in enumerate(questions):
+                if cols[i].button(q, key=f"q_{current_conv['id']}_{i}"):
+                    handle_question(q)
+        else:
+            question_buttons = {
+                "教师": [
+                    "各院系办公室联系电话是多少？",
+                    "教务处和财务处的联系方式？",
+                    "遇到紧急情况如何处理？",
+                    "心理咨询中心在哪里？如何预约？",
+                ],
+            }
+            st.markdown("##### 💡 推荐提问（点击直接发送）")
+            cols = st.columns(4)
+            for i, btn_text in enumerate(question_buttons[identity]):
+                if cols[i].button(btn_text, key=f"btn_{current_conv['id']}_{i}"):
+                    handle_question(btn_text)
 
         # ---------- 对话展示区 ----------
         st.markdown("---")
@@ -422,10 +531,11 @@ try:
                 with st.chat_message("assistant"):
                     st.markdown(msg["content"])
 
-        # ---------- 输入框（按Enter直接发送，发送后自动清空） ----------
-        user_input = st.chat_input("请输入你的问题，按Enter发送...", key=f"chat_{current_conv['id']}")
-        if user_input and user_input.strip():
-            current_conv["messages"].append({"role": "user", "content": user_input})
+        # ---------- 流式输出（在历史消息之后渲染） ----------
+        pending_key = f"pending_q_{current_conv['id']}"
+        if pending_key in st.session_state:
+            pending_q = st.session_state.pop(pending_key)
+            current_conv["messages"].append({"role": "user", "content": pending_q})
             md_files = list(DATA_DIR.glob("[0-9]*.md"))
             if not md_files:
                 answer = "⚠️ 未找到校园资料文件，请确认资料存在。"
@@ -434,47 +544,17 @@ try:
                 system_prompt = build_system_prompt(identity, campus_docs)
                 with st.chat_message("assistant"):
                     placeholder = st.empty()
-                    answer = chat_with_ai_stream(user_input, system_prompt, placeholder)
+                    answer = chat_with_ai_stream(pending_q, system_prompt, placeholder)
             current_conv["messages"].append({"role": "assistant", "content": answer})
             save_conversations()
             st.rerun()
 
-    # ---------- 底部电话黄页 ----------
-    st.markdown("---")
-    st.markdown("### 📞 校园电话黄页")
+        # ---------- 输入框（按Enter直接发送，发送后自动清空） ----------
+        user_input = st.chat_input("请输入你的问题，按Enter发送...", key=f"chat_{current_conv['id']}")
+        if user_input and user_input.strip():
+            handle_question(user_input)
 
-    col_left, col_right = st.columns(2)
-    with col_left:
-        left_table = (
-            "| 部门 | 电话 |\n"
-            "| --- | --- |\n"
-            "| 校值班室 | 0371-63456789 |\n"
-            "| 招生办 | 0371-63456001 |\n"
-            "| 教务处 | 0371-63456002 |\n"
-            "| 学生处 | 0371-63456003 |\n"
-            "| 财务处 | 0371-63456004 |\n"
-            "| 信息工程学院办公室 | 0371-63456101 |\n"
-            "| 航空工程学院办公室 | 0371-63456102 |\n"
-            "| 工商管理学院办公室 | 0371-63456103 |\n"
-            "| 文法学院办公室 | 0371-63456104 |\n"
-        )
-        st.markdown(left_table)
-
-    with col_right:
-        right_table = (
-            "| 部门 | 电话 |\n"
-            "| --- | --- |\n"
-            "| 后勤报修 | 0371-63456201 |\n"
-            "| 宿管中心 | 0371-63456202 |\n"
-            "| 食堂管理 | 0371-63456203 |\n"
-            "| 校园卡中心 | 0371-63456204 |\n"
-            "| 保卫处 | 0371-63456301 |\n"
-            "| 校医院 | 0371-63456302 |\n"
-            "| 心理咨询中心 | 0371-63456303 |\n"
-            "| 心理咨询热线 | 0371-63456304 |\n"
-        )
-        st.markdown(right_table)
-
+    # ---------- 底部版权信息 ----------
     st.markdown("---")
     st.caption("© 2025 小航校园AI助手 | 郑州航空工业管理学院")
 
