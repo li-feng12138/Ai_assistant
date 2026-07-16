@@ -21,17 +21,11 @@ MODEL_NAME = "deepseek-ai/DeepSeek-V3"
 # API密钥
 API_KEY = "sk-nawrukkmeoumzuhtykoxtxpfwenoztejothuugcrkylhovqv"
 
-# data文件夹路径：md文件和day6_new.py在同一目录下
-DATA_DIR = Path(__file__).parent
+# Data文件夹路径：md文件在项目根目录的Data子目录下
+DATA_DIR = Path(__file__).parent.parent / "Data"
 
-# 会话文件存储目录
-SESSIONS_DIR = DATA_DIR / "sessions"
-
-
-
-
-
-
+# 会话文件存储目录（保持在认识实习_作业/sessions下）
+SESSIONS_DIR = Path(__file__).parent / "sessions"
 
 #第三部分：提示词管理函数
 
@@ -593,6 +587,3 @@ except Exception as e:
 # AI的回答范围被限制在提供的4份md文档内
 # 超出文档内容的问题一律拒绝回答
 # 由防幻觉规则第4条强制执行
-
-#文件管理
-#将五份md文件放在同一data文件夹(目录)下面

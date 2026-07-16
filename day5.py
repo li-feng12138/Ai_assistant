@@ -156,7 +156,7 @@ def show_phone_directory():
     print("\n" + "=" * 50)
     print("  📞 校园电话黄页（离线可用）")
     print("=" * 50)
-    content = load_md("03电话黄页.md")
+    content = load_md("../Data/03电话黄页.md")
     if content:
         print(content)
     else:
