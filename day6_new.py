@@ -8,9 +8,7 @@ import streamlit as st
 from pathlib import Path
 import json
 import os
-
-
-
+import time
 
 #第二部分：全局配置
 
@@ -535,6 +533,13 @@ try:
             else:
                 with st.chat_message("assistant"):
                     st.markdown(msg["content"])
+                    if "stats" in msg:
+                        st.markdown(
+                            f"<div style='color:#999999; font-size:12px; margin-top:4px;'>"
+                            f"⏱ 接口耗时：{msg['stats']['elapsed']}s &nbsp;|&nbsp; 📝 回复字数：{msg['stats']['char_count']}字"
+                            f"</div>",
+                            unsafe_allow_html=True,
+                        )
 
         # ---------- 流式输出（在历史消息之后渲染） ----------
         pending_key = f"pending_q_{current_conv['id']}"
@@ -544,14 +549,28 @@ try:
             md_files = list(DATA_DIR.glob("[0-9]*.md"))
             if not md_files:
                 answer = "⚠️ 未找到校园资料文件，请确认资料存在。"
+                stats_info = None
             else:
                 campus_docs = load_all_docs()
                 system_prompt = build_system_prompt(identity, campus_docs)
                 with st.chat_message("assistant"):
                     placeholder = st.empty()
                     with st.spinner("AI正在整理校园相关答案，请稍候..."):
+                        start_time = time.time()
                         answer = chat_with_ai_stream(pending_q, system_prompt, placeholder)
-            current_conv["messages"].append({"role": "assistant", "content": answer})
+                        elapsed = round(time.time() - start_time, 2)
+                    char_count = len(answer.replace(" ", "").replace("\n", ""))
+                    st.markdown(
+                        f"<div style='color:#999999; font-size:12px; margin-top:4px;'>"
+                        f"⏱ 接口耗时：{elapsed}s &nbsp;|&nbsp; 📝 回复字数：{char_count}字"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                stats_info = {"elapsed": elapsed, "char_count": char_count}
+            msg_data = {"role": "assistant", "content": answer}
+            if stats_info:
+                msg_data["stats"] = stats_info
+            current_conv["messages"].append(msg_data)
             save_conversations()
             st.rerun()
 
