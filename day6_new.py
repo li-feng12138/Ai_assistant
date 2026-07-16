@@ -208,6 +208,11 @@ def delete_conversation(conv_name):
         file_path.unlink()
 
 
+
+
+
+
+
 #第五部分：主程序（Streamlit网页界面)
 
 # 设置浏览器标签页标题
@@ -544,7 +549,8 @@ try:
                 system_prompt = build_system_prompt(identity, campus_docs)
                 with st.chat_message("assistant"):
                     placeholder = st.empty()
-                    answer = chat_with_ai_stream(pending_q, system_prompt, placeholder)
+                    with st.spinner("AI正在整理校园相关答案，请稍候..."):
+                        answer = chat_with_ai_stream(pending_q, system_prompt, placeholder)
             current_conv["messages"].append({"role": "assistant", "content": answer})
             save_conversations()
             st.rerun()
