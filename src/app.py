@@ -7,7 +7,6 @@ import requests
 import streamlit as st
 from pathlib import Path
 import json
-import os
 import time
 
 #第二部分：全局配置
@@ -21,16 +20,19 @@ MODEL_NAME = "deepseek-ai/DeepSeek-V3"
 # API密钥
 API_KEY = "sk-nawrukkmeoumzuhtykoxtxpfwenoztejothuugcrkylhovqv"
 
-# Data文件夹路径：md文件在项目根目录的Data子目录下
+# Data文件夹路径：md文件在xiaohang_helper/Data子目录下
 DATA_DIR = Path(__file__).parent.parent / "Data"
 
-# 会话文件存储目录（保持在认识实习_作业/sessions下）
-SESSIONS_DIR = Path(__file__).parent / "sessions"
+# 会话文件存储目录（保持在xiaohang_helper/sessions下）
+SESSIONS_DIR = Path(__file__).parent.parent / "sessions"
+
+
+
 
 #第三部分：提示词管理函数
 
 def load_all_docs():
-    """读取同级目录下所有编号开头的.md文件，合并返回全部文本内容"""
+    """读取Data目录下所有编号开头的.md文件，合并返回全部文本内容"""
     all_text = ""
     for md_file in sorted(DATA_DIR.glob("[0-9]*.md")):
         try:
@@ -39,6 +41,8 @@ def load_all_docs():
         except Exception as e:
             all_text += f"[读取{md_file.name}失败: {e}]\n\n"
     return all_text
+
+
 
 
 def get_identity_prompt(identity):
@@ -66,19 +70,21 @@ def get_identity_prompt(identity):
     return prompts.get(identity, prompts["新生"])
 
 
+
 def get_safety_rules():
-        """返回6条防幻觉硬性规则"""
-        rules = (
-            "【防幻觉硬性规则 - 必须严格遵守】\n"
-            "1. 禁止编造任何电话号码、金额、日期等具体数据，所有信息必须来自上方校园资料。\n"
-            "2. 涉及转账、缴费等金钱相关话题时，必须附加反诈提醒：'请注意核实对方身份，学校不会要求向个人账户转账。'\n"
-            "3. 涉及心理危机、人身安全等紧急问题时，必须优先提供心理援助热线（400-161-9995）和保卫处电话（0371-63456301），"
-            "并建议立即联系辅导员。\n"
-            "4. 如果校园资料中没有相关信息，必须如实告知'抱歉，当前资料中未包含该信息，建议您咨询相关部门。'，禁止猜测或编造。\n"
-            "5. 不支持查询个人个人信息（如成绩、宿舍号、学号等），如遇此类问题请回复'抱歉，我无法查询个人信息，请联系相关部门。'\n"
-            "6. 每次回答末尾需标注资料来源，格式为'📎 资料来源：《xxx》'，如资料中无相关内容则标注'📎 资料来源：暂无相关资料'。"
-            )
-        return rules
+    """返回6条防幻觉硬性规则"""
+    rules = (
+        "【防幻觉硬性规则 - 必须严格遵守】\n"
+        "1. 禁止编造任何电话号码、金额、日期等具体数据，所有信息必须来自上方校园资料。\n"
+        "2. 涉及转账、缴费等金钱相关话题时，必须附加反诈提醒：'请注意核实对方身份，学校不会要求向个人账户转账。'\n"
+        "3. 涉及心理危机、人身安全等紧急问题时，必须优先提供心理援助热线（400-161-9995）和保卫处电话（0371-63456301），"
+        "并建议立即联系辅导员。\n"
+        "4. 如果校园资料中没有相关信息，必须如实告知'抱歉，当前资料中未包含该信息，建议您咨询相关部门。'，禁止猜测或编造。\n"
+        "5. 不支持查询个人个人信息（如成绩、宿舍号、学号等），如遇此类问题请回复'抱歉，我无法查询个人信息，请联系相关部门。'\n"
+        "6. 每次回答末尾需标注资料来源，格式为'📎 资料来源：《xxx》'，如资料中无相关内容则标注'📎 资料来源：暂无相关资料'。"
+    )
+    return rules
+
 
 
 def build_system_prompt(identity, campus_docs):
@@ -97,8 +103,6 @@ def build_system_prompt(identity, campus_docs):
         f"{safety_rules}"
     )
     return system_prompt
-
-
 
 
 
@@ -161,7 +165,6 @@ def chat_with_ai_stream(user_question, system_prompt, placeholder):
 
 
 # 第四部分（补充）：会话持久化函数
-
 def save_conversations():
     """将所有会话保存到sessions目录，每个会话一个JSON文件"""
     if not SESSIONS_DIR.exists():
